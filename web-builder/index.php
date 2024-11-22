@@ -8,6 +8,48 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+
+
+$categories_sql = "SELECT DISTINCT template_category FROM templates_data";
+$categories_result = $conn->query($categories_sql);
+$categories = [];
+if ($categories_result->num_rows > 0) {
+    while ($row = $categories_result->fetch_assoc()) {
+        $categories[] = $row['template_category'];
+    }
+}
+
+
+
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['new_project_name'], $_POST['template_json'])) {
+    $project_name = $conn->real_escape_string($_POST['new_project_name']);
+    $template_json = $conn->real_escape_string($_POST['template_json']);
+
+    // Check for duplicate project name
+    $check_sql = "SELECT COUNT(*) AS count FROM projects_data WHERE project_name = '$project_name'";
+    $check_result = $conn->query($check_sql);
+    $row = $check_result->fetch_assoc();
+
+    if ($row['count'] > 0) {
+        echo "<script>alert('Sorry, this project name is already in use.');</script>";
+    } else {
+        $sql = "INSERT INTO projects_data (project_name, project_json) VALUES ('$project_name', '$template_json')";
+        if ($conn->query($sql) === TRUE) {
+            echo "<script>alert('New project created successfully!'); window.location.href='index.php';</script>";
+        } else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+        }
+    }
+}
+
+
+
+
+
+
+
 // Handle new project creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['project_name'])) {
     $project_name = $conn->real_escape_string($_POST['project_name']);
@@ -111,19 +153,46 @@ $conn->close();
             <form method="POST" action="">
                 <label for="project_name">Project Name:</label>
                 <input pattern="[A-Za-z0-9 ]*" title="Only letters and numbers are allowed" type="text" id="project_name" name="project_name" required>
-                <script>
-                    const inputField = document.getElementById('project_name');
-                    inputField.addEventListener('input', () => {
-                        const value = inputField.value;
-                        inputField.value = value.charAt(0).toUpperCase() + value.slice(1);
-                    });
-                </script>
-                <button type="submit">Create</button>
+                <button type="submit">Create Project</button>
             </form>
         </div>
 
-    </div>
 
+        <div class="template-section">
+    <h2>Template Categories</h2>
+    <div class="categories-container">
+        <?php foreach ($categories as $category): ?>
+                    <div class="category-card" onclick="showTemplates('<?php echo $category; ?>')">
+                        <h3><?php echo htmlspecialchars($category); ?></h3>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        
+        <!-- Template Modal -->
+        <div id="templateModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2 id="modalCategory"></h2>
+                <div id="templatesContainer" class="templates-container"></div>
+            </div>
+        </div>
+        
+        <!-- Project Modal -->
+        <div id="projectModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2 id="selectedTemplate"></h2>
+                <form method="POST" action="">
+                    <label for="new_project_name">Project Name:</label>
+                    <input pattern="[A-Za-z0-9 ]*" title="Only letters and numbers are allowed" type="text" id="new_project_name" name="new_project_name" required>
+                    <input type="hidden" id="template_json" name="template_json">
+                    <button type="submit">Create Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+<script src="js/index.js"></script>
 </body>
 
 </html>

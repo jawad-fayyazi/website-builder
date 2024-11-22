@@ -13,8 +13,8 @@ const editor = grapesjs.init({
     options: {
       remote: {
         headers: {}, // Custom headers for the remote storage request
-        urlStore: `http://localhost/web-builder/php/save_page.php?project_id=${projectId}`, // Endpoint URL where to store data project
-        urlLoad: `http://localhost/web-builder/php/load_page.php?project_id=${projectId}`, // Endpoint URL where to load data project
+        urlStore: `./php/save_page.php?project_id=${projectId}`, // Endpoint URL where to store data project
+        urlLoad: `./php/load_page.php?project_id=${projectId}`, // Endpoint URL where to load data project
       },
     },
   },

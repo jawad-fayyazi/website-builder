@@ -1,7 +1,64 @@
 <?php
-// Get the 'id' parameter from the URL (if it's set)
-$project_id = isset($_GET['project_id']) ? $_GET['project_id'] : null;
-$project_name = isset($_GET['project_name']) ? $_GET['project_name'] : "Project Name";
+include('php/db_config.php');
+
+// Create connection
+$conn = new mysqli($host, $username, $password, $dbname);
+
+// Check the connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Step 1: Check if 'project_id' is set in the URL and is a valid integer
+if (!isset($_GET['project_id']) || empty($_GET['project_id']) || !filter_var($_GET['project_id'], FILTER_VALIDATE_INT)) {
+    // Redirect to 404 if 'project_id' is not set or invalid
+    header("Location: 404.php");
+    exit;
+}
+
+// Step 2: Get the project_id from the URL
+$project_id = $_GET['project_id'];
+
+// Step 3: Query to fetch the project details from the database based on project_id
+$query = "SELECT project_name FROM projects_data WHERE project_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $project_id); // Bind project_id
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Step 4: Check if the project exists and has a name
+if ($result->num_rows === 0) {
+    // Redirect to 404 if no project found with the given project_id
+    header("Location: 404.php");
+    exit;
+}
+
+// Fetch the project name from the database
+$project_data = $result->fetch_assoc();
+$db_project_name = $project_data['project_name'];
+
+// Step 5: Check if 'project_name' is set in the URL
+if (!isset($_GET['project_name']) || empty($_GET['project_name'])) {
+    // Redirect to 404 if 'project_name' is not set
+    header("Location: 404.php");
+    exit;
+}
+
+// Step 6: Get the project_name from the URL
+$project_name_from_url = $_GET['project_name'];
+
+// Step 7: Case-insensitive check: Compare the project_name from URL and the database
+if (strtolower($project_name_from_url) !== strtolower($db_project_name)) {
+    // Redirect to 404 if the project_name does not match (case-insensitive)
+    header("Location: 404.php");
+    exit;
+}
+
+// If everything is valid, proceed with your logic
+$project_name = $project_name_from_url;
+$conn->close();
+
+// Continue with your logic here, like displaying project information
 ?>
 
 

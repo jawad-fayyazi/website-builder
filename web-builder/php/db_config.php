@@ -5,6 +5,9 @@ $dbname = "web-builder_db"; // The name of your database
 $username = "root"; // Your database username
 $password = ""; // Your database password
 
+
+
+
 // Create a connection to the database
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
